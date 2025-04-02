@@ -1,5 +1,9 @@
-@if($action == 'add')
-    <h1>Adding a New Promotion</h1>
+<!DOCTYPE html>
+<html lang="en">
+@include('include.head')
+<body>
+    @if($action == 'add')
+    @include('add')
 @elseif($action == 'edit')
     <h1>Editing a Promotion</h1>
 @elseif($action == 'detail')
@@ -9,3 +13,6 @@
 @else
     <h1>Invalid Promotion Action</h1>
 @endif
+</body>
+</html>
+

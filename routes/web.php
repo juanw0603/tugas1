@@ -15,3 +15,4 @@ Route::get('/', function () {
 
 
 Route::get('/promotion/{action}/{id?}', [PromotionController::class, 'show'])->name('promotion');
+
