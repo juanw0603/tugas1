@@ -17,3 +17,5 @@ Route::get('/promotion/{action}/{id?}', [PromotionController::class, 'show'])->n
 Route::post('/promotion/add', [PromotionController::class, 'create'])->name('promotion.create');
 
 Route::post('/promotion/edit', [PromotionController::class, 'update'])->name('promotion.edit');
+
+Route::delete('/promotion/delete/{promotion}', [PromotionController::class, 'destroy'])->name('promotion.destroy');

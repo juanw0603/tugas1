@@ -13,7 +13,7 @@ class PromotionController extends Controller
     public function index()
     {
         $title = 'list of promotions';
-        $listOfPromotion = Promotion::all();
+        $listOfPromotion = Promotion::orderBy('id', 'ASC')->get();
         return view('home', compact('title','listOfPromotion'));
     }
 
@@ -122,7 +122,11 @@ class PromotionController extends Controller
      */
     public function destroy(promotion $promotion)
     {
-        //
+        $promotion->delete(); 
+
+        return response()->json([
+            'message' => 'Promotion successfully destroyed!'
+        ]);
     }
 
 }

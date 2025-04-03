@@ -2,7 +2,7 @@
 
  
 @section('content')
-<form id="edit-promotion" class="w-full max-w-sm" enctype="multipart/form-data">
+<form id="edit-promotion" class="w-full max-w-sm shadow-xl" enctype="multipart/form-data">
     @csrf
     <div class="md:flex md:items-center mb-6">
       <div class="md:w-1/3">
@@ -48,14 +48,14 @@
            id="file_input" 
            type="file" 
            name="image" 
-           accept="image/*" required>
+           accept="image/*">
     <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG, or GIF (MAX. 800x400px).</p>
     
        
     <div class="flex justify-end pt-6 space-x-2">
       <button type="button" onclick="window.location.href='{{ route('home') }}'" class="bg-[#000000] text-[#ffffff] w-full font-bold text-sm uppercase p-3 rounded-lg hover:bg-[#545454] active:scale-95 transition-transform transform">Cancel</button>
-      <button class="bg-[#f80101] text-[#ffffff] w-full font-bold text-sm uppercase p-3 rounded-lg hover:bg-[#7b4545] active:scale-95 transition-transform transform" onclick="}">delete</button>
-      <button class="bg-[#000000] text-[#ffffff] w-full font-bold text-sm uppercase p-3 rounded-lg hover:bg-[#545454] active:scale-95 transition-transform transform" type="submit">EDIT promotion</button>
+      <button id="delete-promotion" type="button" class="bg-[#f80101] text-[#ffffff] w-full font-bold text-sm uppercase p-3 rounded-lg hover:bg-[#7b4545] active:scale-95 transition-transform transform">Delete</button>      
+    <button class="bg-[#000000] text-[#ffffff] w-full font-bold text-sm uppercase p-3 rounded-lg hover:bg-[#545454] active:scale-95 transition-transform transform" type="submit">EDIT promotion</button>
     </div>  
   </form>
 @endsection
@@ -63,58 +63,97 @@
 @section('script')
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-        $('#edit-promotion').submit(function(e) {
-          e.preventDefault(); 
+      $('#edit-promotion').submit(function(e) {
+        e.preventDefault(); 
 
-          let promotion = @json($promotion);
-            console.log(promotion);
-          let formData = new FormData(this); 
+        let promotion = @json($promotion);
+        console.log(promotion);
+        let formData = new FormData(this); 
 
         formData.append('promotion_id', JSON.stringify(promotion['id']));
-  
-          $.ajax({
-              url: "{{ route('promotion.edit') }}",
-              method: "POST",
-              data: formData,
-              processData: false, // Important: Prevent jQuery from processing data
-              contentType: false,
-              success: function(response) {
-                  Swal.fire({
-                      icon: 'success',
-                      title: 'Success!',
-                      text: response.message,
-                  }).then(() => {
-                    window.location.href = "{{ route('home') }}"; // Redirect after success
-                });
+
+        $.ajax({
+            url: "{{ route('promotion.edit') }}",
+            method: "POST",
+            data: formData,
+            processData: false, // Important: Prevent jQuery from processing data
+            contentType: false,
+            success: function(response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: response.message,
+                }).then(() => {
+                  window.location.href = "{{ route('home') }}"; // Redirect after success
+              });
 
 
-                  // Clear form
-                  $('#bookForm')[0].reset();
-              },
-              error: function(xhr) {
-                  if (xhr.status === 422) {
-                      let errors = xhr.responseJSON.errors;
-                      let errorMessage = '';
+                // Clear form
+                $('#bookForm')[0].reset();
+            },
+            error: function(xhr) {
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors;
+                    let errorMessage = '';
 
-                      $.each(errors, function(key, value) {
-                          errorMessage += value[0] + '\n';
-                      });
+                    $.each(errors, function(key, value) {
+                        errorMessage += value[0] + '\n';
+                    });
 
-                      Swal.fire({
-                          icon: 'error',
-                          title: 'Validation Error!',
-                          text: errorMessage,
-                      });
-                  } else { // jika server side error (atau request gak kekirim)
-                      Swal.fire({
-                          icon: 'error',
-                          title: 'Oops!',
-                          text: 'Something went wrong. Please try again.',
-                      });
-                  }
-              }
-          });
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validation Error!',
+                        text: errorMessage,
+                    });
+                } else { // jika server side error (atau request gak kekirim)
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops!',
+                        text: 'Something went wrong. Please try again.',
+                    });
+                }
+            }
+        });
       });
+
+      $('#delete-promotion').click(function() {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This action cannot be undone!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, destroy it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: "{{ route('promotion.destroy', $promotion->id) }}", // Pass ID in URL
+                method: "DELETE",
+                data: {
+                    _token: "{{ csrf_token() }}" // Required for DELETE
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Destroyed!',
+                        text: response.message,
+                    }).then(() => {
+                        window.location.href = "{{ route('home') }}"; // Redirect
+                    });
+                },
+                error: function(xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops!',
+                        text: 'Failed to destroy. Please try again.',
+                    });
+                }
+            });
+        }
+    });
+});
+
     });
   </script>
 @endsection
