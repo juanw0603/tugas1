@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\promotion;
+use App\Models\Promotion;
 use Illuminate\Http\Request;
 
 class PromotionController extends Controller
@@ -13,16 +13,38 @@ class PromotionController extends Controller
     public function index()
     {
         $title = 'list of promotions';
-        $listOfPromotion = promotion::all();
+        $listOfPromotion = Promotion::all();
         return view('home', compact('title','listOfPromotion'));
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
+        // dd($request->all());
+        // Validate the request data
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif',
+        ]);
+        // Handle the image upload  
+        if ($request->hasFile('image')) {
+            $imageName = time() . '.' . $request->image->extension();
+            $request->image->move(public_path('images'), $imageName);
+        } else {
+            return redirect()->back()->with('error', 'Image upload failed');
+        }
+
+        // Create a new promotion
+        Promotion::create([
+            'title' => $request->input('title'),
+            'description' => $request->input('description'),
+            'image' => $imageName,
+        ]);
+
+        return redirect()->back()->with('success', 'Promotion successfully created!');
     }
 
     /**
@@ -38,9 +60,7 @@ class PromotionController extends Controller
      */
     public function show($action, $id = null)
     {
-        // If the action is "add", there's no need for an ID
         if ($action == 'add') {
-            // If it's 'add', we don't fetch any promotion and just pass the action
             return view('promotion', ['action' => $action]);
         }
 
@@ -71,9 +91,30 @@ class PromotionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, promotion $promotion)
+    public function update(Request $request)
     {
-        //
+        $promotion = Promotion::findorFail($request->promotion_id);
+        
+        // Validate the request data
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+        ]);
+
+        $promotion->title = $request->input('title');
+        $promotion->description = $request->input('description');
+
+        // Handle image upload if a new image is provided
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $imageName = time() . '.' . $request->file('image')->getClientOriginalExtension();
+            $request->file('image')->move(public_path('images'), $imageName);
+            $promotion->image = $imageName;
+        }
+
+        $promotion->save();
+
+        return redirect()->back()->with('success', 'Promotion successfully updated!');
     }
 
     /**

@@ -5,9 +5,9 @@
     @if($action == 'add')
     @include('add')
 @elseif($action == 'edit')
-    <h1>Editing a Promotion</h1>
+    @include('edit')
 @elseif($action == 'detail')
-    <h1>Viewing Promotion Details</h1>
+    @include('detail')
 @elseif(is_numeric($action))
     <h1>Promotion ID: {{ $action }}</h1>
 @else
