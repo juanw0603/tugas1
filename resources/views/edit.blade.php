@@ -63,58 +63,47 @@
 @section('script')
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      $('#edit-promotion').submit(function(e) {
-        e.preventDefault(); 
+      $('#edit-promotion').submit(function (e) {
+        e.preventDefault();
 
         let promotion = @json($promotion);
-        console.log(promotion);
-        let formData = new FormData(this); 
+        let formData = new FormData(this);
 
         formData.append('promotion_id', JSON.stringify(promotion['id']));
+
+        // If no new image is selected, keep the old image
+        let fileInput = document.getElementById('file_input');
+        if (!fileInput.files.length) {
+            formData.append('keep_old_image', true); // Flag for backend
+        }
 
         $.ajax({
             url: "{{ route('promotion.edit') }}",
             method: "POST",
             data: formData,
-            processData: false, // Important: Prevent jQuery from processing data
+            processData: false,
             contentType: false,
-            success: function(response) {
+            success: function (response) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Success!',
                     text: response.message,
                 }).then(() => {
-                  window.location.href = "{{ route('home') }}"; // Redirect after success
-              });
-
+                    window.location.href = "{{ route('home') }}";
+                });
 
                 // Clear form
-                $('#bookForm')[0].reset();
+                $('#edit-promotion')[0].reset();
             },
-            error: function(xhr) {
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors;
-                    let errorMessage = '';
-
-                    $.each(errors, function(key, value) {
-                        errorMessage += value[0] + '\n';
-                    });
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Validation Error!',
-                        text: errorMessage,
-                    });
-                } else { // jika server side error (atau request gak kekirim)
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops!',
-                        text: 'Something went wrong. Please try again.',
-                    });
-                }
+            error: function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops!',
+                    text: 'Something went wrong. Please try again.',
+                });
             }
         });
-      });
+    });
 
       $('#delete-promotion').click(function() {
     Swal.fire({

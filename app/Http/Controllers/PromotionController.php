@@ -110,6 +110,9 @@ class PromotionController extends Controller
             $imageName = time() . '.' . $request->file('image')->getClientOriginalExtension();
             $request->file('image')->move(public_path('images'), $imageName);
             $promotion->image = $imageName;
+        } else {
+            // If no new image is provided, keep the old image
+            $promotion->image = $promotion->image;
         }
 
         $promotion->save();
